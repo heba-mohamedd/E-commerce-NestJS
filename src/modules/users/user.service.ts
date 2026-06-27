@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDTO, SignInDTO } from './dto/create-user.dto';
 import UserRepository from 'src/DB/repositories/user.repository';
 import { encrypt } from 'src/common/utils/security/encrypt.security';
-import { HUserDocument } from 'src/DB/models/user.model';
+import type { HUserDocument } from 'src/DB/models/user.model';
 import { generateOtp, sendEmail } from 'src/common/utils/email/send.email';
 import { EmailEnum } from 'src/common/enum/email.enum';
 import { emailTemplete } from 'src/common/utils/email/email.templete';
@@ -12,6 +12,7 @@ import { Compare, Hash } from 'src/common/utils/security/hash.security';
 import TokenService from 'src/common/services/token.service';
 import { ProviderEnum, RoleEnum } from 'src/common/enum/user.enum';
 import { randomUUID } from 'crypto';
+import type { Request } from 'express';
 
 @Injectable()
 export class UserService {
@@ -163,5 +164,15 @@ export class UserService {
     );
 
     return { access_token, refresh_token };
+  }
+
+  async getAllUsers() {
+    return this._userRepository.find({ filter: {} });
+  }
+  // async getProfile(req: Request) {
+  //   return this._userRepository.findById(req.user?._id!);
+  // }
+  getProfile(user: HUserDocument) {
+    return user;
   }
 }
