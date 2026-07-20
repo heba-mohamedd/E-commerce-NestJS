@@ -12,47 +12,12 @@ import {
   Length,
   Max,
   Min,
-  registerDecorator,
   // Validate,
   ValidateIf,
-  ValidationOptions,
 } from 'class-validator';
+import { IsMatch } from 'src/common/decorator/user.decorator';
 
-import {
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-  ValidationArguments,
-} from 'class-validator';
 import { GenderEnum, RoleEnum } from 'src/common/enum/user.enum';
-
-@ValidatorConstraint({ name: 'matchKey', async: false })
-export class matchKey implements ValidatorConstraintInterface {
-  validate(value: string, args: ValidationArguments) {
-    // console.log(args);
-
-    return value === args.object[args.constraints[0]]; // for async validations you must return a Promise<boolean> here
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    // here you can provide default error message if validation failed
-    return `${args.property} is not matched ${args.constraints[0]}`;
-  }
-}
-
-export function IsMatch(
-  constraints: string[],
-  validationOptions?: ValidationOptions,
-) {
-  return function (object: Object, propertyName: string) {
-    registerDecorator({
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      constraints,
-      validator: matchKey,
-    });
-  };
-}
 
 export class CreateUserDTO {
   @IsString()
@@ -138,4 +103,61 @@ export class SignInDTO {
   @IsString()
   @IsStrongPassword()
   password: string;
+}
+
+export class confirmEmailDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6)
+  code: string;
+}
+
+export class forgetPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class resendOtpDTO {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class resetPasswordDTO {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6)
+  code: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsStrongPassword()
+  password: string;
+}
+
+export class updatePasswordDTO {
+  @IsString()
+  @IsNotEmpty()
+  @IsStrongPassword()
+  oldPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsStrongPassword()
+  newPassword: string;
+}
+
+export class updateProfilePictureDTO {
+  @IsString()
+  @IsNotEmpty()
+  profilePicture: string;
 }

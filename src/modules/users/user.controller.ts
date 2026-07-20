@@ -1,33 +1,34 @@
 import {
-  // BadRequestException,
   Body,
   Controller,
   Get,
-  // HttpException,
-  HttpStatus,
-  Param,
-  ParseIntPipe,
+  Patch,
   Post,
   Req,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  // UsePipes,
-  // ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDTO, SignInDTO } from './dto/create-user.dto';
+import {
+  confirmEmailDto,
+  CreateUserDTO,
+  forgetPasswordDto,
+  resendOtpDTO,
+  resetPasswordDTO,
+  SignInDTO,
+  updatePasswordDTO,
+} from './dto/create-user.dto';
 import type { Request } from 'express';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
 import { Auth, Roles, TokenType } from 'src/common/decorator/auth.decorator';
 import { AuthorizationGuard } from 'src/common/guards/authorization.guard';
 import { RoleEnum } from 'src/common/enum/user.enum';
-import { User } from 'src/common/decorator/user.decorator';
-import type { HUserDocument } from 'src/DB/models/user.model';
-import { TokenEnum } from 'src/common/enum/token.enum';
+
 import { FileInterceptor } from '@nestjs/platform-express';
 import multerCloud from 'src/common/utils/multer.utils';
-import { Store_Enum } from 'src/common/enum/multer.enum';
+import { multer_enum } from 'src/common/enum/multer.enum';
 // import { ZodValidationPipe } from 'src/common/pipes/validation.pipe';
 
 @Controller('user')
@@ -49,14 +50,14 @@ export class UserController {
   //   return this.userService.getProfile(req);
   // }
 
-  @Get('profile')
-  @Auth({
-    token_type: TokenEnum.access_token,
-    access_roles: [RoleEnum.user, RoleEnum.admin],
-  })
-  getProfile(@User() user: HUserDocument) {
-    return this.userService.getProfile(user);
-  }
+  // @Get('profile')
+  // @Auth({
+  //   token_type: TokenEnum.access_token,
+  //   access_roles: [RoleEnum.user, RoleEnum.admin],
+  // })
+  // getProfile(@User() user: HUserDocument) {
+  //   return this.userService.getProfile(user);
+  // }
 
   // @Get('profile')
   // @TokenType() //  get token type from decorator (order is important)
@@ -65,16 +66,16 @@ export class UserController {
   //   return this.userService.getProfile(user);
   // }
 
-  @Get(':id')
-  getUsers(
-    @Param(
-      'id',
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
-    id: number,
-  ): any {
-    return this.userService.getUsers(id);
-  }
+  // @Get(':id')
+  // getUsers(
+  //   @Param(
+  //     'id',
+  //     new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+  //   )
+  //   id: number,
+  // ): any {
+  //   return this.userService.getUsers(id);
+  // }
 
   // @Post()
   // // @UsePipes(
@@ -98,10 +99,10 @@ export class UserController {
   //   return this.userService.craeteUser(body);
   // }
 
-  @Get()
-  getAllUsers() {
-    return this.userService.getAllUsers();
-  }
+  // @Get()
+  // getAllUsers() {
+  //   return this.userService.getAllUsers();
+  // }
 
   @Post('signUp')
   signUp(@Body() body: CreateUserDTO) {
@@ -113,12 +114,84 @@ export class UserController {
     return this.userService.signIn(body);
   }
 
-  @Post('upload')
+  @Patch('confirmEmail')
+  confirmEmail(@Body() body: confirmEmailDto) {
+    return this.userService.confirmEmail(body);
+  }
+
+  @Post('forgetPassword')
+  forgetPassword(@Body() body: forgetPasswordDto) {
+    return this.userService.forgetPassword(body);
+  }
+
+  @Patch('resend-otp')
+  resendOtp(@Body() body: resendOtpDTO) {
+    return this.userService.resendOtp(body);
+  }
+
+  @Post('resetPassword')
+  resetPassword(@Body() body: resetPasswordDTO) {
+    return this.userService.resetPassword(body);
+  }
+
+  @Post('updatePassword')
+  @Auth()
+  @UseGuards(AuthenticationGuard)
+  updatePassword(@Body() body: updatePasswordDTO, @Req() req: any) {
+    return this.userService.updatePassword(body, req);
+  }
+
+  @Get('profile')
+  @Auth()
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles([RoleEnum.user])
+  getProfile(@Req() req: any) {
+    return this.userService.getProfile(req);
+  }
+
+  // @Post('upload')
+  // @UseInterceptors(
+  //   FilesInterceptor('files', 2, multerCloud({ store_type: Store_Enum.disk })),
+  // )
+  // uploadFile(@UploadedFiles() files: Express.Multer.File[]) {
+  //   return files;
+  // }
+
+  // @Post('upload')
+  // @UseInterceptors(
+  //   // FilesInterceptor('files', 2, multerCloud({ store_type: Store_Enum.disk })),
+  //   FileFieldsInterceptor(
+  //     [
+  //       { name: 'avatar', maxCount: 2 },
+  //       { name: 'background', maxCount: 1 },
+  //     ],
+  //     multerCloud({ store_type: Store_Enum.disk }),
+  //   ),
+  // )
+  // uploadFiles(
+  //   @UploadedFiles() avatar: Express.Multer.File[],
+  //   @UploadedFile() background: Express.Multer.File,
+  // ) {
+  //   return { avatar, background };
+  // }
+
+  @Post('upload-s3')
+  @TokenType()
+  @UseGuards(AuthenticationGuard)
   @UseInterceptors(
-    FileInterceptor('file', multerCloud({ store_type: Store_Enum.disk })),
+    FileInterceptor('file', multerCloud({ custom_types: multer_enum.image })),
   )
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    console.log(file);
-    return file;
+  updateProfilePicture(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    return this.userService.updateProfilePicture(file, req);
+  }
+
+  @Post('logout')
+  @TokenType()
+  @UseGuards(AuthenticationGuard)
+  logout(@Query() query: any, @Req() req: any) {
+    return this.userService.logout(query, req);
   }
 }

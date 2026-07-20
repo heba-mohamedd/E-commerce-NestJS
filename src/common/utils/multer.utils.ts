@@ -2,6 +2,7 @@ import multer from 'multer';
 import { tmpdir } from 'node:os';
 import type { Request } from 'express';
 import { multer_enum, Store_Enum } from '../enum/multer.enum';
+import { BadRequestException } from '@nestjs/common';
 
 const multerCloud = ({
   store_type = Store_Enum.memory,
@@ -16,7 +17,7 @@ const multerCloud = ({
     store_type === Store_Enum.memory
       ? multer.memoryStorage()
       : multer.diskStorage({
-          destination: tmpdir(),
+          destination: './upload',
           filename: function (
             req: Request,
             file: Express.Multer.File,
@@ -34,7 +35,7 @@ const multerCloud = ({
     callback: Function,
   ) {
     if (!custom_types.includes(file.mimetype)) {
-      return callback(new Error('Invalid File type'), false);
+      return callback(new BadRequestException('Invalid File type'), false);
     }
     callback(null, true);
   }

@@ -8,28 +8,30 @@ import RedisService from 'src/common/services/redis.service';
 import TokenService from 'src/common/services/token.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthenticationGuard } from 'src/common/guards/authentication.guard';
-import { MulterModule } from '@nestjs/platform-express';
-import multer from 'multer';
-import type { Request } from 'express';
+// import { MulterModule } from '@nestjs/platform-express';
+// import multer from 'multer';
+// import type { Request } from 'express';
+import { S3Service } from 'src/common/services/s3.service';
 
 @Module({
   imports: [
     UserModel,
     RedisModule,
-    MulterModule.register({
-      storage: multer.diskStorage({
-        destination: (
-          req: Request,
-          file: Express.Multer.File,
-          cb: Function,
-        ) => {
-          cb(null, './upload');
-        },
-        filename(req: Request, file: Express.Multer.File, cb: Function) {
-          cb(null, Date.now() + file.originalname);
-        },
-      }),
-    }),
+    // for local storage if i want to apply multer on all routes in this module
+    // MulterModule.register({
+    //   storage: multer.diskStorage({
+    //     destination: (
+    //       req: Request,
+    //       file: Express.Multer.File,
+    //       cb: Function,
+    //     ) => {
+    //       cb(null, './upload');
+    //     },
+    //     filename(req: Request, file: Express.Multer.File, cb: Function) {
+    //       cb(null, Date.now() + file.originalname);
+    //     },
+    //   }),
+    // }),
   ],
   controllers: [UserController],
   providers: [
@@ -39,6 +41,7 @@ import type { Request } from 'express';
     TokenService,
     JwtService,
     AuthenticationGuard,
+    S3Service,
   ],
   exports: [],
 })

@@ -17,11 +17,11 @@ export const Roles = (access_role: RoleEnum[]) => {
 
 export const Auth = ({
   token_type = TokenEnum.access_token,
-  access_roles,
+  access_roles = [RoleEnum.user],
 }: {
   token_type?: TokenEnum;
-  access_roles: RoleEnum[];
-}) => {
+  access_roles?: RoleEnum[];
+} = {}) => {
   return applyDecorators(
     TokenType(token_type),
     Roles(access_roles),

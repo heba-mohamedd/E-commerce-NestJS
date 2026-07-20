@@ -47,12 +47,14 @@ abstract class BaseRepository<TDocument> {
     projection?: ProjectionType<TDocument>;
     options?: QueryOptions<TDocument>;
   }): Promise<HydratedDocument<TDocument>[] | []> {
-    return this.model
-      .find(filter, projection)
-      .sort(options?.sort)
-      .skip(options?.skip!)
-      .limit(options?.limit!)
-      .populate(options?.populate as PopulateOptions);
+    return (
+      this.model
+        .find(filter, projection)
+        .sort(options?.sort)
+        // .skip(options?.skip!)
+        // .limit(options?.limit!)
+        .populate(options?.populate as PopulateOptions)
+    );
   }
 
   async findByIdAndUpdate({
@@ -80,7 +82,7 @@ abstract class BaseRepository<TDocument> {
     options?: QueryOptions<TDocument>;
   }): Promise<HydratedDocument<TDocument> | null> {
     return this.model.findOneAndUpdate(filter, update, {
-      new: true,
+      returnDocument: 'after',
       ...options,
     });
   }
