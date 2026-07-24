@@ -6,8 +6,11 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
-  // Patch,
-  // Param,
+  Param,
+  Patch,
+  Get,
+  Query,
+  Delete,
   // Delete,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
@@ -18,6 +21,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import multerCloud from 'src/common/utils/multer.utils';
 import type { HUserDocument } from 'src/DB/models/user.model';
 import { User } from 'src/common/decorator/user.decorator';
+import { IdDto, UpdateCategoryDto } from './dto/update-category.dto';
+import { QueryDTO } from 'src/types/queryDto';
 
 @Controller('category')
 export class CategoryController {
@@ -25,32 +30,41 @@ export class CategoryController {
 
   @Post()
   @Auth({ access_roles: [RoleEnum.admin] })
-  @UseInterceptors(FileInterceptor('logo', multerCloud()))
+  @UseInterceptors(FileInterceptor('categoryImg', multerCloud()))
   createCategory(
     @Body() body: CreateCategoryDto,
     @UploadedFile(ParseFilePipe) file: Express.Multer.File,
     @User() user: HUserDocument,
   ) {
     return this._categoryService.createCategory(body, file, user);
+    // return this._categoryService.createCategory(body, user);
   }
 
-  // @Get()
-  // findAllCategories() {
-  //   return this.categoryService.findAll();
-  // }
+  @Get()
+  findAllCategories(@Query() query: QueryDTO) {
+    return this._categoryService.findAllCategories(query);
+  }
 
-  // @Get(':id')
-  // findOneCategory(@Param('id') id: string) {
-  //   return this.categoryService.findOne(+id);
-  // }
+  @Get(':id')
+  findOneCategory(@Param('id') id: string) {
+    return this._categoryService.findOneCategory(id);
+  }
 
-  // @Patch(':id')
-  // updateCategory(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-  //   return this.categoryService.update(+id, updateCategoryDto);
-  // }
+  @Patch(':id')
+  @Auth({ access_roles: [RoleEnum.admin] })
+  updateCategory(
+    @Param() params: IdDto,
+    @Body() body: UpdateCategoryDto,
+    @User() user: HUserDocument,
+  ) {
+    console.log(body);
 
-  // @Delete(':id')
-  // removeCategory(@Param('id') id: string) {
-  //   return this.categoryService.remove(+id);
-  // }
+    return this._categoryService.updateCategory(params.id, body, user);
+  }
+
+  @Delete(':id')
+  @Auth({ access_roles: [RoleEnum.admin] })
+  removeCategory(@Param('id') id: string) {
+    return this._categoryService.removeCategory(id);
+  }
 }

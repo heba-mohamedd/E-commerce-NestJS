@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, Length, Validate } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Validate,
+} from 'class-validator';
 import { Types } from 'mongoose';
 import { ValidateIds } from 'src/common/decorator/category.decorator';
 
@@ -8,6 +14,7 @@ export class CreateCategoryDto {
   @Length(3, 30)
   name: string;
 
+  @IsOptional()
   @Validate(ValidateIds)
-  brands: Types.ObjectId[];
+  brands?: Types.ObjectId[];
 }

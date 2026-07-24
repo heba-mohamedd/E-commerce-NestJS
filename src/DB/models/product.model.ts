@@ -3,6 +3,7 @@ import { HydratedDocument, Types, UpdateQuery } from 'mongoose';
 import slugify from 'slugify';
 import { User } from './user.model';
 import { Brand } from './brand.model';
+import { Category } from './category.model';
 
 @Schema({
   timestamps: true,
@@ -10,30 +11,58 @@ import { Brand } from './brand.model';
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 })
-export class Category {
+export class Product {
   @Prop({
     type: String,
     required: true,
     trim: true,
     minlength: [3, 'name must be at least 3 characters long'],
     maxlength: [30, 'name must be at most 30 characters long'],
-    unique: true,
   })
   name: string;
 
   @Prop({
     type: String,
-    default: function (this: Category) {
+    default: function (this: Product) {
       return slugify(this.name, { replacement: '-', lower: true, trim: true });
     },
   })
   slug: string;
 
-  @Prop([{ type: Types.ObjectId, ref: Brand.name, required: true }])
-  brands: Types.ObjectId;
+  @Prop({
+    type: String,
+    required: true,
+    trim: true,
+    minlength: [3, 'description must be at least 3 characters long'],
+  })
+  description: string;
 
-  // @Prop({ type: String, required: true })
-  // logo: string;
+  @Prop({ type: Types.ObjectId, ref: Brand.name, required: true })
+  brandId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: Category.name, required: true })
+  categoryId: Types.ObjectId;
+
+  @Prop({ type: String })
+  mainImage: string;
+
+  @Prop({ type: [String], default: [] })
+  subImages: string[];
+
+  @Prop({ type: Number, required: true })
+  price: number;
+
+  @Prop({ type: Number })
+  discount: number;
+
+  @Prop({ type: Number, required: true })
+  stock: number;
+
+  @Prop({ type: Number })
+  rateNum: number;
+
+  @Prop({ type: Number })
+  rateAvg: number;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   createdBy: Types.ObjectId;
@@ -49,11 +78,11 @@ export class Category {
 }
 
 // this is schema with pre save hook
-export const CategorySchema = SchemaFactory.createForClass(Category);
-export type HCategoryDocument = HydratedDocument<Category>;
+export const ProductSchema = SchemaFactory.createForClass(Product);
+export type HProductDocument = HydratedDocument<Product>;
 
-CategorySchema.pre(['findOneAndUpdate', 'updateOne'], function () {
-  const updateQuery = this.getUpdate() as UpdateQuery<Category>;
+ProductSchema.pre(['findOneAndUpdate', 'updateOne'], function () {
+  const updateQuery = this.getUpdate() as UpdateQuery<Product>;
   if (updateQuery?.name) {
     updateQuery.slug = slugify(updateQuery.name, {
       replacement: '-',
@@ -62,6 +91,6 @@ CategorySchema.pre(['findOneAndUpdate', 'updateOne'], function () {
     });
   }
 });
-export const CategoryModel = MongooseModule.forFeature([
-  { name: Category.name, schema: CategorySchema },
+export const ProductModel = MongooseModule.forFeature([
+  { name: Product.name, schema: ProductSchema },
 ]);
